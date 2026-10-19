@@ -342,13 +342,30 @@
   const root = document.documentElement;
   const themeButton = document.getElementById("theme-toggle");
   let dark = false;
+  const compactThemeView = window.matchMedia("(max-width: 620px)");
+  let themeFrame = 0;
+  let themeReleaseFrame = 0;
   themeButton.addEventListener("click", () => {
+    if (compactThemeView.matches) {
+      cancelAnimationFrame(themeFrame);
+      cancelAnimationFrame(themeReleaseFrame);
+      root.classList.add("is-theme-switching");
+    }
     dark = !dark;
     root.classList.toggle("portfolio-dark", dark);
     themeButton.classList.toggle("is-dark", dark);
     themeButton.setAttribute("aria-pressed", String(dark));
     themeButton.setAttribute("aria-label", dark ? "Switch to light color scheme" : "Switch to dark color scheme");
     document.querySelector('meta[name="theme-color"]').content = dark ? "#111322" : "#f5f5fb";
+    if (compactThemeView.matches) {
+      themeFrame = requestAnimationFrame(() => {
+        themeReleaseFrame = requestAnimationFrame(() => {
+          root.classList.remove("is-theme-switching");
+          themeFrame = 0;
+          themeReleaseFrame = 0;
+        });
+      });
+    }
   });
 
   const menuButton = document.getElementById("menu-toggle");
@@ -1240,10 +1257,10 @@
       pointerX = event.clientX;
       pointerY = event.clientY;
       pointerTime = now;
-      targetY += deltaX * .006;
-      targetX += deltaY * .006;
-      velocityY = Math.max(-.014, Math.min(.014, deltaX * .006 / elapsed));
-      velocityX = Math.max(-.014, Math.min(.014, deltaY * .006 / elapsed));
+      targetY -= deltaX * .006;
+      targetX -= deltaY * .006;
+      velocityY = Math.max(-.014, Math.min(.014, -deltaX * .006 / elapsed));
+      velocityX = Math.max(-.014, Math.min(.014, -deltaY * .006 / elapsed));
       wake();
     };
     const endDrag = () => { dragging = false; iconCloud.classList.remove("is-dragging"); wake(); };

@@ -122,10 +122,10 @@ export function ProjectIconCloud() {
       pointerX = event.clientX;
       pointerY = event.clientY;
       pointerTime = now;
-      targetY += deltaX * 0.006;
-      targetX += deltaY * 0.006;
-      velocityY = Math.max(-0.014, Math.min(0.014, deltaX * 0.006 / elapsed));
-      velocityX = Math.max(-0.014, Math.min(0.014, deltaY * 0.006 / elapsed));
+      targetY -= deltaX * 0.006;
+      targetX -= deltaY * 0.006;
+      velocityY = Math.max(-0.014, Math.min(0.014, -deltaX * 0.006 / elapsed));
+      velocityX = Math.max(-0.014, Math.min(0.014, -deltaY * 0.006 / elapsed));
     };
     const onPointerUp = () => {
       isDragging = false;

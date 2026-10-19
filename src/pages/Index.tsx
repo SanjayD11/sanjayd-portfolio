@@ -489,7 +489,14 @@ const Index = () => {
           {[ ["Work", "#work"], ["About", "#about"], ["Elsewhere", "#elsewhere"], ["Contact", "#contact"] ].map(([label, href]) => <a key={href} href={href}><span className="p-link-face">{label}</span><span className="p-link-face-alt" aria-hidden="true">{label}</span></a>)}
         </nav>
         <div className="p-nav-actions">
-          <button className="p-icon-button p-theme-toggle" onClick={() => setDark(!dark)} aria-label={dark ? "Use light color scheme" : "Use dark color scheme"}>{dark ? <Sun size={16} /> : <Moon size={16} />}</button>
+          <button className="p-icon-button p-theme-toggle" onClick={() => {
+            if (window.matchMedia("(max-width: 620px)").matches) {
+              const root = document.documentElement;
+              root.classList.add("is-theme-switching");
+              requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("is-theme-switching")));
+            }
+            setDark(!dark);
+          }} aria-label={dark ? "Use light color scheme" : "Use dark color scheme"}>{dark ? <Sun size={16} /> : <Moon size={16} />}</button>
           <MobileCardNav />
         </div>
       </header>

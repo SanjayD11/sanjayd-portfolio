@@ -1549,10 +1549,14 @@ html.lenis.lenis-smooth iframe { pointer-events:none; }
 @media (max-width:620px) {
   html { scroll-behavior:auto !important; }
   .portfolio { transition:background-color .28s ease,color .28s ease; }
+  html.is-theme-switching .portfolio,
+  html.is-theme-switching .portfolio *,
+  html.is-theme-switching .portfolio *::before,
+  html.is-theme-switching .portfolio *::after { transition:none!important; }
   .p-nav { -webkit-backdrop-filter:blur(9px) saturate(1.08); backdrop-filter:blur(9px) saturate(1.08); }
   .p-mobile-cardnav-panel { -webkit-backdrop-filter:blur(13px) saturate(1.25); backdrop-filter:blur(13px) saturate(1.25); }
   .p-contact-form { -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px); }
-  .p-icon-cloud-node { -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+  .p-icon-cloud-node { -webkit-backdrop-filter:none; backdrop-filter:none; will-change:auto; box-shadow:0 4px 12px #24203c0b; }
   .p-theme-toggle .p-classic-toggle-clip,
   .p-theme-toggle .p-classic-toggle-disc,
   .p-theme-toggle .p-classic-toggle-ray { transition-duration:320ms; }
