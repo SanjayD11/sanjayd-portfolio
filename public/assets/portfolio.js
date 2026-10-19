@@ -308,10 +308,12 @@
     if (!lenis) return;
     event.preventDefault();
     event.stopPropagation();
+    const compactViewport = window.matchMedia("(max-width: 850px)").matches;
     if (lenis.isStopped) lenis.start();
-    else lenis.reset();
+    else if (!compactViewport) lenis.reset();
     lenis.scrollTo(0, {
       duration: 2.1,
+      force: compactViewport,
       easing: (progress) => progress * progress * progress * (progress * (progress * 6 - 15) + 10),
     });
     window.portfolioLenisWake?.();
@@ -980,13 +982,13 @@
     };
     skipButton.addEventListener("click", dismiss, { once: true });
     const startedAt = performance.now();
-    const minimumDuration = reduceMotion ? 420 : 1850;
+    const minimumDuration = reduceMotion ? 420 : 2220;
     const finishAfterMinimum = () => {
       finishTimer = window.setTimeout(dismiss, Math.max(0, minimumDuration - (performance.now() - startedAt)));
     };
     window.addEventListener("load", finishAfterMinimum, { once: true });
     if (document.readyState === "complete") finishAfterMinimum();
-    safetyTimer = window.setTimeout(dismiss, reduceMotion ? 850 : 2550);
+    safetyTimer = window.setTimeout(dismiss, reduceMotion ? 850 : 2920);
   } else introNav();
 
   const progress = document.getElementById("scroll-progress");
@@ -1160,40 +1162,41 @@
     });
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const mobileView = window.matchMedia("(max-width: 620px)");
+    const mobileView = window.matchMedia("(max-width: 850px)");
     const nodes = Array.from(iconCloud.querySelectorAll("[data-cloud-node]"));
-    let frame = 0, idleTimer = 0, rotationX = 0, rotationY = 0, targetX = 0, targetY = 0;
+    let frame = 0, rotationX = 0, rotationY = 0, targetX = 0, targetY = 0;
     let velocityX = 0, velocityY = 0, pointerX = 0, pointerY = 0, pointerTime = 0;
     let dragging = false, hovering = false, lastTime = 0;
     let cloudIntersecting = !mobileView.matches || !("IntersectionObserver" in window);
     let cloudVisible = cloudIntersecting;
     const stopRenderLoop = () => {
       if (frame) cancelAnimationFrame(frame);
-      if (idleTimer) window.clearTimeout(idleTimer);
       frame = 0;
-      idleTimer = 0;
       lastTime = 0;
     };
     const scheduleRender = () => {
-      if (frame || idleTimer || !cloudVisible || (mobileView.matches && document.hidden)) return;
-      if (mobileView.matches && !dragging && !reducedMotion) {
-        idleTimer = window.setTimeout(() => {
-          idleTimer = 0;
-          if (!frame && cloudVisible && !document.hidden) frame = requestAnimationFrame(render);
-        }, 32);
-      } else frame = requestAnimationFrame(render);
+      if (frame || !cloudVisible || (mobileView.matches && document.hidden)) return;
+      if (mobileView.matches && !dragging) {
+        const stillSettling = Math.abs(velocityX) > .00004 || Math.abs(velocityY) > .00004 ||
+          Math.abs(targetX - rotationX) > .001 || Math.abs(targetY - rotationY) > .001;
+        if (reducedMotion || !stillSettling) {
+          velocityX = 0;
+          velocityY = 0;
+          return;
+        }
+      }
+      frame = requestAnimationFrame(render);
     };
     const wake = () => {
       if (!cloudVisible || (mobileView.matches && document.hidden)) return;
-      if (dragging && idleTimer) { window.clearTimeout(idleTimer); idleTimer = 0; }
-      if (!frame && !idleTimer) frame = requestAnimationFrame(render);
+      if (!frame) frame = requestAnimationFrame(render);
     };
     const render = (time) => {
       frame = 0;
       if (!cloudVisible || (mobileView.matches && document.hidden)) { lastTime = 0; return; }
       const delta = lastTime ? Math.min(time - lastTime, 40) : 16;
       lastTime = time;
-      if (!reducedMotion && !dragging) targetY += delta * (hovering ? .00008 : .00012);
+      if (!mobileView.matches && !reducedMotion && !dragging) targetY += delta * (hovering ? .00008 : .00012);
       if (!dragging) {
         targetX += velocityX * delta;
         targetY += velocityY * delta;
@@ -1216,7 +1219,6 @@
         node.style.opacity = String(.62 + depth * .38);
         node.style.zIndex = String(Math.round(depth * 100));
       });
-      if (mobileView.matches && reducedMotion && !dragging) return;
       scheduleRender();
     };
     const onPointerDown = (event) => {
@@ -1242,6 +1244,7 @@
       targetX += deltaY * .006;
       velocityY = Math.max(-.014, Math.min(.014, deltaX * .006 / elapsed));
       velocityX = Math.max(-.014, Math.min(.014, deltaY * .006 / elapsed));
+      wake();
     };
     const endDrag = () => { dragging = false; iconCloud.classList.remove("is-dragging"); wake(); };
     const onPointerEnter = () => { hovering = true; wake(); };

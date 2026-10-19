@@ -465,6 +465,9 @@
   .p-hero { padding-top:25px; }
   .p-index { font-size:7px; }
   .p-kicker { font-size:8px; }
+  .p-hero-top { display:grid; grid-template-columns:minmax(0,1fr); justify-items:stretch; gap:7px; }
+  .p-hero-top > .p-kicker { font-size:7px; white-space:nowrap; }
+  .p-hero-top > .p-index { justify-self:end; text-align:right; font-size:7px; line-height:1.35; white-space:nowrap; }
   .p-hero-main { display:flex; flex-direction:column; align-items:stretch; gap:30px; padding:48px 0 29px; }
   .p-hero h1 { font-size:clamp(59px,14.2vw,88px); }
   .p-overline { font-size:8px; }
@@ -734,6 +737,7 @@
 .p-loader-meta { display:flex; justify-content:space-between; gap:16px; margin-top:34px; padding-bottom:13px; border-bottom:1px solid #7772ad27; }
 .p-loader-meta span:last-child { white-space:nowrap; }
 .p-loader-meta i,.p-ticker-bottom i { display:inline-block; width:6px; height:6px; margin:0 7px 1px 0; border-radius:50%; background:#9b63e6; box-shadow:0 0 12px #9b63e6a8; animation:p-status-pulse 2s ease-in-out infinite; }
+.p-ticker-bottom i { display:none; }
 .p-loader-track { height:5px; margin-top:17px; overflow:hidden; border-radius:20px; background:#29294b13; }
 .p-loader-track i { position:relative; display:block; width:100%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#405de6,#8458e8,#c45ed7); box-shadow:0 0 18px #7858e979; transform:scaleX(0); transform-origin:left; transition:transform .22s ease-out; }
 .p-loader-track i::after { content:""; position:absolute; inset:0 auto 0 -35%; width:32%; background:linear-gradient(90deg,transparent,#ffffffd9,transparent); animation:p-loader-shimmer 1.2s ease-in-out infinite; }
@@ -1557,4 +1561,7 @@ html.lenis.lenis-smooth iframe { pointer-events:none; }
   .p-icon-button:hover:not(.is-dark),.p-menu-button:hover:not(.is-open) { background:transparent; border-color:transparent; color:var(--ink-soft); box-shadow:none; transform:none; }
   .p-icon-button:hover svg,.p-theme-toggle:hover svg { transform:none; filter:none; }
   .p-theme-toggle:hover .p-classic-toggle { filter:none; }
+}
+@media (max-width:850px) {
+  .p-icon-cloud { touch-action:pan-y; }
 }
