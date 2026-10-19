@@ -89,6 +89,7 @@ const EngineeringNotebook = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [folderOpen, setFolderOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [hasPaperTransition, setHasPaperTransition] = useState(false);
   const lastPointerTypeRef = useRef("");
   const rootRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -98,6 +99,7 @@ const EngineeringNotebook = () => {
   const wasOpenRef = useRef(false);
   const previousOverflowRef = useRef<{ body: string; root: string; bodyPaddingRight: string } | null>(null);
   const closeTimerRef = useRef<number | null>(null);
+  const openingSheetRectRef = useRef<DOMRect | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -135,17 +137,29 @@ const EngineeringNotebook = () => {
         document.documentElement.style.overflow = "hidden";
         window.dispatchEvent(new CustomEvent("portfolio:lenis-lock", { detail: true }));
         dialog.showModal();
+        const sourceRect = openingSheetRectRef.current;
+        if (sourceRect && window.matchMedia("(max-width:480px)").matches) {
+          const dialogRect = dialog.getBoundingClientRect();
+          const scaleX = Math.min(.8, Math.max(.25, sourceRect.width / dialogRect.width));
+          const scaleY = Math.min(.8, Math.max(.2, sourceRect.height / dialogRect.height));
+          dialog.style.setProperty("--notebook-shift-x", `${sourceRect.left + sourceRect.width / 2 - (dialogRect.left + dialogRect.width / 2)}px`);
+          dialog.style.setProperty("--notebook-shift-y", `${sourceRect.top + sourceRect.height / 2 - (dialogRect.top + dialogRect.height / 2)}px`);
+          dialog.style.setProperty("--notebook-scale-x", String(scaleX));
+          dialog.style.setProperty("--notebook-scale-y", String(scaleY));
+        }
       }
       wasOpenRef.current = true;
       closeRef.current?.focus();
     } else if (wasOpenRef.current) {
       if (dialog.open) dialog.close();
+      setFolderOpen(false);
       document.body.style.overflow = previousOverflowRef.current?.body ?? "";
       document.body.style.paddingRight = previousOverflowRef.current?.bodyPaddingRight ?? "";
       document.documentElement.style.overflow = previousOverflowRef.current?.root ?? "";
       window.dispatchEvent(new CustomEvent("portfolio:lenis-lock", { detail: false }));
       wasOpenRef.current = false;
       returnFocusRef.current?.focus();
+      openingSheetRectRef.current = null;
     }
   }, [activeIndex]);
 
@@ -163,19 +177,20 @@ const EngineeringNotebook = () => {
   }, []);
 
   const close = () => {
-    setFolderOpen(false);
     if (!dialogRef.current?.open || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setFolderOpen(false);
       setIsClosing(false);
       setActiveIndex(null);
       return;
     }
     if (closeTimerRef.current !== null) window.clearTimeout(closeTimerRef.current);
     setIsClosing(true);
+    const closeDuration = window.matchMedia("(max-width:480px)").matches ? 560 : 420;
     closeTimerRef.current = window.setTimeout(() => {
       closeTimerRef.current = null;
       setIsClosing(false);
       setActiveIndex(null);
-    }, 420);
+    }, closeDuration);
   };
   const toggleFolder = (detail: number) => {
     if (detail > 0 && lastPointerTypeRef.current === "mouse") setFolderOpen(true);
@@ -194,10 +209,10 @@ const EngineeringNotebook = () => {
           {notes.map((note, index) => <button
             key={note.mark}
             className={`p-notebook-sheet${activeIndex === index ? " is-selected" : ""}`}
-            style={{ "--sheet-index": index, "--open-offset": `${index * 14}%`, "--mobile-open-offset": `${index * 12.5}%`, "--closed-offset": `${(index - 2) * 2.2}%`, "--closed-rise": `${(index - 2) * 4}px`, "--sheet-delay": `${index * 55}ms`, "--sheet-turn": `${(index - 2) * 1.5}deg` } as CSSProperties}
+            style={{ "--sheet-index": index, "--open-offset": `${index * 14}%`, "--mobile-open-offset": `${index * 8.5}%`, "--closed-offset": `${(index - 2) * 2.2}%`, "--closed-rise": `${(index - 2) * 4}px`, "--sheet-delay": `${index * 55}ms`, "--sheet-turn": `${(index - 2) * 1.5}deg` } as CSSProperties}
             type="button"
             tabIndex={folderOpen ? 0 : -1}
-            onClick={() => setActiveIndex(index)}
+            onClick={(event) => { openingSheetRectRef.current = event.currentTarget.getBoundingClientRect(); setHasPaperTransition(true); setActiveIndex(index); }}
             aria-haspopup="dialog"
             aria-label={`Open note ${note.mark}: ${note.title}`}
           ><span className="p-notebook-sheet-top"><span>{note.eyebrow}</span><FileText size={15} aria-hidden="true" /></span><strong>{note.title}</strong><span className="p-notebook-sheet-summary">{note.summary}</span><span className="p-notebook-sheet-lines" aria-hidden="true"><i /><i /><i /></span><span className="p-notebook-sheet-sketch" aria-hidden="true" /><span className="p-notebook-sheet-open">OPEN NOTE <ArrowUpRight size={12} /></span></button>)}
@@ -206,7 +221,7 @@ const EngineeringNotebook = () => {
         <div className="p-notebook-footer"><span>MAINTAINABILITY · TRUST · CURIOSITY</span><span>MADE FROM PROJECTS, PRACTICE & CONTINUOUS LEARNING</span></div>
       </div>
     </section>
-    <dialog className={`p-notebook-dialog${isClosing ? " is-closing" : ""}`} ref={dialogRef} aria-labelledby="p-notebook-dialog-title" onCancel={(event) => { event.preventDefault(); close(); }} onClick={(event) => { if (event.target === event.currentTarget) close(); }}>
+    <dialog className={`p-notebook-dialog${isClosing ? " is-closing" : ""}${hasPaperTransition ? " is-paper-transition" : ""}`} ref={dialogRef} aria-labelledby="p-notebook-dialog-title" onClose={(event) => { const dialog = event.currentTarget; setHasPaperTransition(false); ["--notebook-shift-x", "--notebook-shift-y", "--notebook-scale-x", "--notebook-scale-y"].forEach((property) => dialog.style.removeProperty(property)); }} onCancel={(event) => { event.preventDefault(); close(); }} onClick={(event) => { if (event.target === event.currentTarget) close(); }}>
       <div className="p-cursor p-cursor-modal" aria-hidden="true"><svg className="p-cursor-plane" viewBox="0 0 16 16" focusable="false"><path d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z" /></svg><svg className="p-cursor-hand" viewBox="0 0 22 24" focusable="false"><path d="M8 12V4.8a1.35 1.35 0 0 1 2.7 0v4.7-1a1.3 1.3 0 0 1 2.6 0v1.1-.35a1.25 1.25 0 0 1 2.5 0v1.3-.05a1.25 1.25 0 0 1 2.5 0v4.1a6 6 0 0 1-6 6h-.7a5.2 5.2 0 0 1-4.1-2l-3.5-4.2a1.4 1.4 0 0 1 2.2-1.8L8 15z" /></svg></div>
       {activeIndex !== null && <article className="p-notebook-dialog-shell" data-lenis-prevent>
         <header className="p-notebook-dialog-header"><div><span className="p-kicker">{notes[activeIndex].eyebrow} · FIELD NOTES</span><h2 id="p-notebook-dialog-title">{notes[activeIndex].title}</h2><p>{notes[activeIndex].summary}</p></div><button ref={closeRef} className="p-notebook-close" type="button" onClick={close} aria-label="Close engineering note"><X size={19} /></button></header>
