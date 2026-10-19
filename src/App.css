@@ -1563,5 +1563,5 @@ html.lenis.lenis-smooth iframe { pointer-events:none; }
   .p-theme-toggle:hover .p-classic-toggle { filter:none; }
 }
 @media (max-width:850px) {
-  .p-icon-cloud { touch-action:pan-y; }
+  .p-icon-cloud { touch-action:none; }
 }

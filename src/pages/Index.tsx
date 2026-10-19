@@ -496,7 +496,7 @@ const Index = () => {
 
       <main>
         <section className="p-hero">
-          <div className="p-hero-top"><span className="p-kicker"><i /> Computer science student · 2024–2028</span><span className="p-index">PORTFOLIO / SANJAY DHARMARAJOU</span></div>
+          <div className="p-hero-top"><span className="p-kicker"><i /> Computer science student · 2024–2028</span></div>
           {!showMobileProfileCard && <Lanyard className="p-hero-lanyard" frontImage="/images/profile-photo.png?v=refreshed-studio-20261017" backImage="" imagePosition={{ x: 0.5, y: 0.2 }} imageFit="cover" cardColor="#f8f7ff" strapColor="#7052e8" strapLength={0.44} strapWidth={0.58} size={0.34} anchor="elsewhere" damping={0.62} elasticity={0.52} breeze={0} intro={false} />}
           <div className="p-hero-main">
             <div className="p-hero-copy">
